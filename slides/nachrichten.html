@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Schulnachrichten</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%; height: 100%;
+      background: #0d1b2a;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      color: #fff;
+      overflow: hidden;
+    }
+
+    /* ── Header ── */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.2rem 2rem;
+      background: linear-gradient(90deg, #1a3a5c, #0d1b2a);
+      border-bottom: 2px solid #2e6da4;
+    }
+    .header .label {
+      background: #e63946;
+      color: #fff;
+      font-size: clamp(0.7rem, 1.5vw, 0.9rem);
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0.3em 0.8em;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+    .header h1 {
+      font-size: clamp(1rem, 2.5vw, 1.5rem);
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      opacity: 0.95;
+    }
+    .header .date {
+      margin-left: auto;
+      font-size: clamp(0.8rem, 1.5vw, 1rem);
+      opacity: 0.55;
+      white-space: nowrap;
+    }
+
+    /* ── Haupt-Meldung ── */
+    .main-news {
+      padding: 2rem 2.5rem 1rem;
+      flex: 1;
+    }
+    .news-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+      height: calc(100vh - 130px - 64px);
+      overflow: hidden;
+    }
+    .news-item {
+      display: flex;
+      gap: 1.2rem;
+      align-items: flex-start;
+      padding: 1rem 1.2rem;
+      background: rgba(255,255,255,0.05);
+      border-left: 3px solid #2e6da4;
+      border-radius: 0 8px 8px 0;
+      animation: fadeSlide 0.5s ease both;
+    }
+    .news-item:nth-child(1) { animation-delay: 0.1s; border-color: #e63946; }
+    .news-item:nth-child(2) { animation-delay: 0.2s; border-color: #2e6da4; }
+    .news-item:nth-child(3) { animation-delay: 0.3s; border-color: #2a9d8f; }
+    .news-item:nth-child(4) { animation-delay: 0.4s; border-color: #e9c46a; }
+    .news-item:nth-child(5) { animation-delay: 0.5s; border-color: #8338ec; }
+
+    .news-num {
+      font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+      font-weight: 900;
+      opacity: 0.15;
+      line-height: 1;
+      min-width: 2rem;
+    }
+    .news-text {
+      flex: 1;
+    }
+    .news-text .category {
+      font-size: clamp(0.6rem, 1.2vw, 0.75rem);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      opacity: 0.5;
+      margin-bottom: 0.25rem;
+    }
+    .news-text .headline {
+      font-size: clamp(0.9rem, 2vw, 1.2rem);
+      font-weight: 600;
+      line-height: 1.4;
+    }
+    .news-text .detail {
+      font-size: clamp(0.75rem, 1.5vw, 0.95rem);
+      opacity: 0.6;
+      margin-top: 0.3rem;
+      line-height: 1.5;
+    }
+
+    /* ── Laufband unten ── */
+    .ticker-wrap {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: 48px;
+      background: #e63946;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+    }
+    .ticker-label {
+      background: #b5000e;
+      color: #fff;
+      font-weight: 800;
+      font-size: 0.85rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0 1.2rem;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      white-space: nowrap;
+      z-index: 2;
+      flex-shrink: 0;
+    }
+    .ticker-track {
+      display: flex;
+      white-space: nowrap;
+      animation: ticker 30s linear infinite;
+    }
+    .ticker-item {
+      padding: 0 3rem;
+      font-size: 0.95rem;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+    }
+    .ticker-item::after {
+      content: ' ◆ ';
+      opacity: 0.5;
+    }
+
+    @keyframes ticker {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateX(-12px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <span class="label">Aktuell</span>
+    <h1>Schulnachrichten</h1>
+    <span class="date" id="date"></span>
+  </div>
+
+  <div class="main-news">
+    <div class="news-list" id="news-list"></div>
+  </div>
+
+  <div class="ticker-wrap">
+    <div class="ticker-label">News</div>
+    <div class="ticker-track" id="ticker"></div>
+  </div>
+
+  <script>
+    // ════════════════════════════════════════════════════
+    //  HIER NACHRICHTEN BEARBEITEN
+    // ════════════════════════════════════════════════════
+
+    const NACHRICHTEN = [
+      {
+        category: "Schule",
+        headline: "Rondo Turnier am Mittwoch, 18.03.",
+        detail: "Anmeldung bis Freitag 13.03. bei Eleni und Coco aus der Klasse 7.1. Treffpunkt: Rondoplatte ab 13:30 Uhr."
+      },
+      {
+        category: "Veranstaltung",
+        headline: "Projektwoche vom 24.–28. März",
+        detail: "Die Anmeldung für Projektgruppen läuft noch bis Ende dieser Woche."
+      },
+      {
+        category: "Mensa",
+        headline: "Neues Wochenmenu ab nächster Woche",
+        detail: "Den aktuellen Speiseplan findet ihr auf dem Mittagessen-Slide oder am Aushang."
+      },
+      {
+        category: "Info",
+        headline: "Elternsprechtag am 20. März",
+        detail: "Terminbuchung über die Schulwebsite möglich."
+      },
+      {
+        category: "Sport",
+        headline: "Fußball-AG startet wieder",
+        detail: "Jeden Dienstag ab 14:00 Uhr auf dem Sportplatz – alle Klassen willkommen."
+      }
+    ];
+
+    // Ticker-Kurzmeldungen (Laufband unten)
+    const TICKER = [
+      "Rondo Turnier Anmeldung bis 13.03.",
+      "Projektwoche 24.–28. März",
+      "Elternsprechtag 20. März",
+      "Fußball-AG: Dienstags 14:00 Uhr",
+      "Aktuelle Vertretungen im WebUntis-Monitor"
+    ];
+
+    // ════════════════════════════════════════════════════
+
+    // Datum
+    const now = new Date();
+    document.getElementById('date').textContent =
+      now.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+    // Nachrichten rendern
+    const list = document.getElementById('news-list');
+    NACHRICHTEN.forEach((n, i) => {
+      list.innerHTML += `
+        <div class="news-item">
+          <div class="news-num">${String(i+1).padStart(2,'0')}</div>
+          <div class="news-text">
+            <div class="category">${n.category}</div>
+            <div class="headline">${n.headline}</div>
+            ${n.detail ? `<div class="detail">${n.detail}</div>` : ''}
+          </div>
+        </div>`;
+    });
+
+    // Ticker rendern (doppelt für nahtlose Schleife)
+    const tickerEl = document.getElementById('ticker');
+    const items = TICKER.map(t => `<span class="ticker-item">${t}</span>`).join('');
+    tickerEl.innerHTML = items + items;
+  </script>
+</body>
+</html>

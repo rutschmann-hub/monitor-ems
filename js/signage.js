@@ -162,23 +162,18 @@ document.addEventListener('keydown', (e) => {
 });
 
 // ─── Start ───────────────────────────────────────────────────────────────
-async function init() {
-  try {
-    const res = await fetch('config.json');
-    if (!res.ok) throw new Error('config.json nicht gefunden');
-    config = await res.json();
-  } catch (err) {
-    document.body.innerHTML = `<div class="error-slide">
-      Fehler beim Laden der config.json:<br>${err.message}
-    </div>`;
+function init() {
+  if (!window.SIGNAGE_CONFIG) {
+    document.body.innerHTML = '<div class="error-slide">config.js nicht geladen. Stelle sicher, dass config.js im gleichen Ordner liegt.</div>';
     return;
   }
+  config = window.SIGNAGE_CONFIG;
 
   // Nur aktive Slides (kein disabled: true)
   slides = config.slides.filter(s => s.disabled !== true);
 
   if (slides.length === 0) {
-    document.body.innerHTML = '<div class="error-slide">Keine Slides in config.json konfiguriert.</div>';
+    document.body.innerHTML = '<div class="error-slide">Keine Slides in config.js konfiguriert.</div>';
     return;
   }
 
