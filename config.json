@@ -1,0 +1,48 @@
+{
+  "settings": {
+    "defaultDuration": 15,
+    "transitionDuration": 800,
+    "showProgressBar": true,
+    "showSlideTitle": true,
+    "showClock": true
+  },
+  "slides": [
+    {
+      "id": "welcome",
+      "type": "local",
+      "file": "slides/welcome.html",
+      "title": "Willkommen",
+      "duration": 10
+    },
+    {
+      "id": "webuntis",
+      "type": "url",
+      "url": "https://neilo.webuntis.com/timetable-students/",
+      "title": "Stundenplan – WebUntis",
+      "duration": 30,
+      "comment": "Ersetze die URL mit deiner Schul-WebUntis-URL"
+    },
+    {
+      "id": "canva",
+      "type": "url",
+      "url": "https://www.canva.com/design/DEIN-DESIGN-ID/view?embed",
+      "title": "Canva Präsentation",
+      "duration": 20,
+      "comment": "Ersetze mit deinem Canva Embed-Link (Teilen → Einbetten)"
+    },
+    {
+      "id": "info-bild",
+      "type": "image",
+      "file": "assets/beispiel.png",
+      "title": "Info",
+      "duration": 12
+    },
+    {
+      "id": "info-pdf",
+      "type": "pdf",
+      "file": "assets/beispiel.pdf",
+      "title": "Dokument",
+      "duration": 20
+    }
+  ]
+}

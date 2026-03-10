@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digital Signage</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Overlay: Uhr & Slide-Titel -->
+  <div id="top-bar">
+    <span id="slide-title">Lädt...</span>
+    <span id="clock"></span>
+  </div>
+
+  <!-- Slide-Container: hier werden iframes / img / pdf eingeblendet -->
+  <div id="slide-container">
+    <div id="slide-a" class="slide active"></div>
+    <div id="slide-b" class="slide"></div>
+  </div>
+
+  <!-- Fortschrittsbalken -->
+  <div id="progress-bar-wrap">
+    <div id="progress-bar"></div>
+  </div>
+
+  <!-- Slide-Indikatoren (Punkte) -->
+  <div id="dots"></div>
+
+  <script src="js/signage.js"></script>
+</body>
+</html>

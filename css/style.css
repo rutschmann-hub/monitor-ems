@@ -1,0 +1,149 @@
+/* ─── Reset & Basis ──────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  color: #fff;
+}
+
+/* ─── Top-Bar (Titel + Uhr) ──────────────────────────────────────────────── */
+#top-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 20px;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.75) 0%, transparent 100%);
+  pointer-events: none; /* Klicks durchlassen */
+}
+
+#slide-title {
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+  opacity: 0.85;
+}
+
+#clock {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+  opacity: 0.85;
+}
+
+/* ─── Slide-Container ────────────────────────────────────────────────────── */
+#slide-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.slide {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.8s ease-in-out;
+  pointer-events: none;
+}
+
+.slide.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* iframes füllen den gesamten Slide aus */
+.slide iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+/* Bilder: zentriert, vollständig sichtbar */
+.slide img.full-media {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  background: #000;
+}
+
+/* ─── Fortschrittsbalken ─────────────────────────────────────────────────── */
+#progress-bar-wrap {
+  position: fixed;
+  bottom: 36px; /* Platz für Dots */
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(255,255,255,0.15);
+  z-index: 100;
+}
+
+#progress-bar {
+  height: 100%;
+  width: 0%;
+  background: #fff;
+  border-radius: 2px;
+}
+
+/* ─── Dots (Slide-Indikatoren) ───────────────────────────────────────────── */
+#dots {
+  position: fixed;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  z-index: 100;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.35);
+  cursor: pointer;
+  transition: background 0.3s, transform 0.3s;
+  border: 1px solid rgba(255,255,255,0.5);
+}
+
+.dot.active {
+  background: #fff;
+  transform: scale(1.3);
+}
+
+.dot:hover {
+  background: rgba(255,255,255,0.7);
+}
+
+/* ─── Fehleranzeige ──────────────────────────────────────────────────────── */
+.error-slide {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-size: 1.2rem;
+  color: #ff6b6b;
+  text-align: center;
+  padding: 2rem;
+  background: #111;
+  line-height: 1.7;
+}
