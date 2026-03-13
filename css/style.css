@@ -87,15 +87,15 @@ html, body {
   bottom: 0;
   left: 0;
   right: 0;
-  height: 2px;
-  background: rgba(255,255,255,0.15);
+  height: 3px;
+  background: rgba(0,0,0,0.3);
   z-index: 100;
 }
 
 #progress-bar {
   height: 100%;
   width: 0%;
-  background: #fff;
+  background: #4f9cf9;
   border-radius: 2px;
 }
 
