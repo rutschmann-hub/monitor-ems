@@ -31,6 +31,14 @@ window.SIGNAGE_CONFIG = {
       url: "https://www.canva.com/design/DAHD0Yvn9a0/0Ry0YUl1dtIK2trdqtpYvQ/view?embed",
       title: "EMS Monitor",
       duration: 25
+    },
+    {
+      id: "sonderveranstaltungen",
+      type: "url",
+      url: "https://www.canva.com/design/DAHD2JwSZZw/SzFrQegSVUushKBtt57D_g/view?embed",
+      title: "Sonderveranstaltungen",
+      duration: 25,
+      enabled: false   // ← Standardmäßig aus – nur bei Bedarf einschalten
     }
   ]
 };
