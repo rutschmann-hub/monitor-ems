@@ -1,5 +1,7 @@
 # Digital Signage
 
+🌐 **Live:** [https://rutschmann-hub.github.io/monitor-ems/](https://rutschmann-hub.github.io/monitor-ems/)
+
 Eine einfache, selbst gehostete Digital-Signage-Lösung. HTML-Seiten, externe URLs (WebUntis, Canva), Bilder und PDFs rotieren automatisch auf dem Bildschirm.
 
 ## Schnellstart

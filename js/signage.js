@@ -210,7 +210,7 @@ function adminSave() {
 }
 
 // ─── Konami-Code Schutz ──────────────────────────────────────────────────
-const KONAMI = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','a'];
+const KONAMI = ['e','m','s'];
 let konamiPos = 0;
 
 // ─── Tastatur-Steuerung ──────────────────────────────────────────────────
