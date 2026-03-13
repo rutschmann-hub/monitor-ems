@@ -147,3 +147,117 @@ html, body {
   background: #111;
   line-height: 1.7;
 }
+
+/* ─── Admin-Panel ─────────────────────────────────────────────────────────── */
+#admin-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+#admin-overlay.open { display: flex; }
+
+#admin-panel {
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px;
+  width: 460px;
+  max-width: 90vw;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+#admin-panel h2 { font-size: 1.3rem; color: #1a1a2e; margin-bottom: 6px; }
+.admin-hint { font-size: 0.82rem; color: #999; margin-bottom: 20px; }
+.admin-hint kbd {
+  background: #eee; border-radius: 4px;
+  padding: 1px 6px; font-size: 0.8rem;
+}
+
+.admin-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+.admin-row:last-of-type { border-bottom: none; }
+.admin-row-title { font-weight: 600; color: #222; font-size: 1rem; }
+.admin-row-status { font-size: 0.78rem; margin-top: 2px; font-weight: 500; }
+.admin-row-status.on  { color: #4CAF50; }
+.admin-row-status.off { color: #f44336; }
+
+/* Toggle */
+.admin-toggle { position: relative; display: inline-block; width: 50px; height: 26px; flex-shrink: 0; margin-left: 14px; }
+.admin-toggle input { opacity: 0; width: 0; height: 0; }
+.admin-toggle .sl {
+  position: absolute; cursor: pointer; inset: 0;
+  background: #ccc; border-radius: 26px; transition: .3s;
+}
+.admin-toggle .sl:before {
+  content: ""; position: absolute;
+  width: 18px; height: 18px; left: 4px; bottom: 4px;
+  background: white; border-radius: 50%; transition: .3s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.admin-toggle input:checked + .sl { background: #4CAF50; }
+.admin-toggle input:checked + .sl:before { transform: translateX(24px); }
+
+#admin-save-btn {
+  margin-top: 22px; width: 100%; padding: 13px;
+  background: #1a1a2e; color: white; border: none;
+  border-radius: 10px; font-size: 1rem; font-weight: 600;
+  cursor: pointer; transition: background 0.2s;
+}
+#admin-save-btn:hover { background: #2d2d5a; }
+
+/* ─── PIN-Panel ───────────────────────────────────────────────────────────── */
+#pin-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 2000;
+  align-items: center;
+  justify-content: center;
+}
+#pin-overlay.open { display: flex; }
+
+#pin-panel {
+  background: #fff;
+  border-radius: 16px;
+  padding: 36px 32px 28px;
+  width: 300px;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+#pin-panel h2 { font-size: 1.4rem; margin-bottom: 6px; color: #1a1a2e; }
+
+#pin-input {
+  width: 100%;
+  margin: 16px 0 6px;
+  padding: 12px;
+  font-size: 1.4rem;
+  text-align: center;
+  letter-spacing: 0.3em;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+#pin-input:focus { border-color: #1a1a2e; }
+
+#pin-error { color: #f44336; font-size: 0.85rem; min-height: 20px; margin-bottom: 6px; }
+
+#pin-btn {
+  width: 100%; padding: 12px;
+  background: #1a1a2e; color: white;
+  border: none; border-radius: 10px;
+  font-size: 1rem; font-weight: 600;
+  cursor: pointer; margin-top: 6px;
+  transition: background 0.2s;
+}
+#pin-btn:hover { background: #2d2d5a; }

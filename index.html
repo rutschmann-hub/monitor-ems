@@ -28,6 +28,27 @@
   <!-- Slide-Indikatoren (Punkte) -->
   <div id="dots"></div>
 
+  <!-- PIN-Abfrage -->
+  <div id="pin-overlay">
+    <div id="pin-panel">
+      <h2>🔒 Admin</h2>
+      <p class="admin-hint">PIN eingeben</p>
+      <input id="pin-input" type="password" inputmode="numeric" maxlength="8" placeholder="••••" autocomplete="off">
+      <div id="pin-error"></div>
+      <button id="pin-btn" onclick="pinCheck()">Bestätigen</button>
+    </div>
+  </div>
+
+  <!-- Admin-Panel (Taste A öffnen/schließen) -->
+  <div id="admin-overlay">
+    <div id="admin-panel">
+      <h2>📺 Seiten verwalten</h2>
+      <p class="admin-hint">Taste <kbd>A</kbd> oder <kbd>Esc</kbd> zum Schließen</p>
+      <div id="admin-slide-list"></div>
+      <button id="admin-save-btn" onclick="adminSave()">💾 Speichern & Schließen</button>
+    </div>
+  </div>
+
   <script src="config.js"></script>
   <script src="js/signage.js"></script>
 </body>

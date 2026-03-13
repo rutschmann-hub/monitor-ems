@@ -7,7 +7,8 @@ window.SIGNAGE_CONFIG = {
     transitionDuration: 800,
     showProgressBar: true,
     showSlideTitle: true,
-    showClock: true
+    showClock: true,
+    adminPin: "1234"   // ← PIN für das Admin-Panel (ändern!)
   },
   slides: [
     {
@@ -18,28 +19,19 @@ window.SIGNAGE_CONFIG = {
       duration: 30
     },
     {
-      id: "canva",
+      id: "nachrichten",
       type: "url",
-      url: "https://www.canva.com/design/DAF8LVmbsTU/rpT7Uf96EhY4Q5UgW8MZew/view?embed",
-      title: "Mittagessen",
-      duration: 20
+      url: "https://www.canva.com/design/DAHD0_QcYJU/Bu7uqMes1_002VeZn7O3mQ/view?embed",
+      title: "Schulnachrichten",
+      duration: 25,
+      enabled: true   // ← false = Seite wird übersprungen
     },
     {
-      id: "info-bild",
-      type: "image",
-      file: "assets/L.png",
-      title: "Info",
-      duration: 12
-      // disabled: true  ← hinzufügen zum Ausblenden
-    },
-    {
-      id: "info-pdf",
-      type: "pdf",
-      file: "assets/L.pdf",
-      title: "Info",
-      duration: 20,
-      disabled: true
-      // disabled: true entfernen wenn L.pdf im assets/ Ordner liegt
+      id: "ems-monitor",
+      type: "url",
+      url: "https://www.canva.com/design/DAHD0Yvn9a0/0Ry0YUl1dtIK2trdqtpYvQ/view?embed",
+      title: "EMS Monitor",
+      duration: 25
     }
   ]
 };
