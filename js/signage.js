@@ -209,50 +209,36 @@ function adminSave() {
   showSlide(0);
 }
 
-// ─── PIN-Schutz ───────────────────────────────────────────────────────────
-function pinOpen() {
-  const pinInput = document.getElementById('pin-input');
-  document.getElementById('pin-error').textContent = '';
-  pinInput.value = '';
-  document.getElementById('pin-overlay').classList.add('open');
-  setTimeout(() => pinInput.focus(), 100);
-}
-
-function pinCheck() {
-  const entered = document.getElementById('pin-input').value;
-  const correct = (config.settings.adminPin || '1234');
-  if (entered === correct) {
-    document.getElementById('pin-overlay').classList.remove('open');
-    adminOpen();
-  } else {
-    const err = document.getElementById('pin-error');
-    err.textContent = '❌ Falscher PIN';
-    document.getElementById('pin-input').value = '';
-    setTimeout(() => { err.textContent = ''; }, 2000);
-  }
-}
+// ─── Konami-Code Schutz ──────────────────────────────────────────────────
+const KONAMI = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','a'];
+let konamiPos = 0;
 
 // ─── Tastatur-Steuerung ──────────────────────────────────────────────────
 document.addEventListener('keydown', (e) => {
-  // PIN-Feld: Enter bestätigt
-  if (document.getElementById('pin-overlay').classList.contains('open')) {
-    if (e.key === 'Enter') pinCheck();
-    if (e.key === 'Escape') document.getElementById('pin-overlay').classList.remove('open');
-    return;
-  }
-  if (e.key === 'a' || e.key === 'A') {
-    const overlay = document.getElementById('admin-overlay');
-    if (overlay.classList.contains('open')) {
-      overlay.classList.remove('open');
-    } else {
-      pinOpen();
-    }
-    return;
-  }
+  // Admin-Panel: Esc schließt
   if (e.key === 'Escape') {
     document.getElementById('admin-overlay').classList.remove('open');
+    konamiPos = 0;
     return;
   }
+
+  // Konami-Code prüfen
+  if (e.key === KONAMI[konamiPos]) {
+    konamiPos++;
+    if (konamiPos === KONAMI.length) {
+      konamiPos = 0;
+      const overlay = document.getElementById('admin-overlay');
+      overlay.classList.contains('open') ? overlay.classList.remove('open') : adminOpen();
+    }
+    return;
+  } else {
+    konamiPos = (e.key === KONAMI[0]) ? 1 : 0;
+  }
+
+  // Admin offen → keine Slide-Navigation
+  if (document.getElementById('admin-overlay').classList.contains('open')) return;
+
+
   if (e.key === 'ArrowRight' || e.key === ' ') {
     clearTimers();
     currentIndex = (currentIndex + 1) % slides.length;

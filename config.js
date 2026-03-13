@@ -8,7 +8,6 @@ window.SIGNAGE_CONFIG = {
     showProgressBar: true,
     showSlideTitle: true,
     showClock: true,
-    adminPin: "1234"   // ← PIN für das Admin-Panel (ändern!)
   },
   slides: [
     {
