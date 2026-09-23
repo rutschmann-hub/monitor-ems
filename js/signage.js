@@ -68,6 +68,7 @@ function renderDots() {
   slides.forEach((_, i) => {
     const dot = document.createElement('span');
     dot.className = 'dot' + (i === currentIndex ? ' active' : '');
+    dot.appendChild(document.createElement('span')).className = 'dot-fill';
     dot.addEventListener('click', () => {
       clearTimers();
       currentIndex = i;
@@ -85,14 +86,19 @@ function updateDots() {
 
 // ─── Fortschrittsbalken ──────────────────────────────────────────────────
 function startProgressBar(duration) {
-  progressBar.style.transition = 'none';
-  progressBar.style.width = '0%';
+  // Balken unten + Füllung im aktiven Punkt (bleibt sichtbar, falls der Bildschirm unten abschneidet)
+  const fills = [progressBar, ...document.querySelectorAll('.dot-fill')];
+  const activeFill = document.querySelector('.dot.active .dot-fill');
+  fills.forEach(el => { el.style.transition = 'none'; el.style.width = '0%'; });
 
   // Mini-Verzögerung damit der Reset sichtbar ist
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
-      progressBar.style.transition = `width ${duration}ms linear`;
-      progressBar.style.width = '100%';
+      [progressBar, activeFill].forEach(el => {
+        if (!el) return;
+        el.style.transition = `width ${duration}ms linear`;
+        el.style.width = '100%';
+      });
     });
   });
 }
