@@ -28,13 +28,14 @@
   <!-- Slide-Indikatoren (Punkte) -->
   <div id="dots"></div>
 
-  <!-- Admin-Panel (Konami-Code: ↑↑↓↓←→←→A) -->
+  <!-- Info-Panel (Tastenfolge e m s) – nur Anzeige, geschaltet wird in der Google-Tabelle -->
   <div id="admin-overlay">
     <div id="admin-panel">
-      <h2>📺 Seiten verwalten</h2>
-      <p class="admin-hint"><kbd>e m s</kbd> oder <kbd>Esc</kbd> zum Schließen</p>
+      <h2>📺 Aktuelle Seiten</h2>
+      <p class="admin-hint"><kbd>e m s</kbd> oder <kbd>Esc</kbd> zum Schließen · Ändern in der Google-Tabelle</p>
+      <p class="admin-hint" id="admin-source"></p>
       <div id="admin-slide-list"></div>
-      <button id="admin-save-btn" onclick="adminSave()">💾 Speichern & Schließen</button>
+      <button id="admin-save-btn" onclick="adminReload()">🔄 Jetzt neu laden</button>
     </div>
   </div>
 

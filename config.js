@@ -8,6 +8,13 @@ window.SIGNAGE_CONFIG = {
     showProgressBar: true,
     showSlideTitle: true,
     showClock: true,
+
+    // Google-Tabelle mit der Seitenliste (Spalten: an, Titel, Link, Sekunden).
+    // Leer = nur die Liste unten verwenden. Die Liste unten ist auch die Reserve,
+    // falls Google nicht erreichbar ist.
+    sheetCsvUrl: "https://docs.google.com/spreadsheets/d/18vz3J_22zN62QApgEvwpHC7ApmGFECdyMeD27PRRtcc/gviz/tq?tqx=out:csv",
+    sheetEditUrl: "https://docs.google.com/spreadsheets/d/18vz3J_22zN62QApgEvwpHC7ApmGFECdyMeD27PRRtcc/edit",      // Link zum Bearbeiten – /admin.html leitet dorthin weiter
+    refreshMinutes: 2,     // wie oft die Bildschirme die Tabelle neu prüfen
   },
   slides: [
     {

@@ -1,6 +1,6 @@
 /**
  * Digital Signage – Rotation Engine
- * Konfiguration erfolgt über config.json
+ * Seitenliste: Google-Tabelle (settings.sheetCsvUrl), Reserve: config.js
  */
 
 let config = null;
@@ -148,65 +148,113 @@ function clearTimers() {
   clearTimeout(progressTimer);
 }
 
-// ─── Admin-Panel ─────────────────────────────────────────────────────────
-const ADMIN_KEY = 'signage_enabled_overrides';
+// ─── Google-Tabelle ──────────────────────────────────────────────────────
+// Die Seitenliste kommt aus einer Google-Tabelle (Spalten: an, Titel, Link, Sekunden).
+// Ist sie nicht erreichbar, gilt die Liste aus config.js.
+let slideSource = 'config.js';
 
-function adminGetOverrides() {
-  try { return JSON.parse(localStorage.getItem(ADMIN_KEY)) || {}; } catch { return {}; }
+function parseCSV(text) {
+  const rows = [];
+  let row = [], field = '', quoted = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (quoted) {
+      if (c === '"' && text[i + 1] === '"') { field += '"'; i++; }
+      else if (c === '"') quoted = false;
+      else field += c;
+    } else if (c === '"') quoted = true;
+    else if (c === ',') { row.push(field); field = ''; }
+    else if (c === '\n' || c === '\r') {
+      if (c === '\r' && text[i + 1] === '\n') i++;
+      row.push(field); rows.push(row); row = []; field = '';
+    } else field += c;
+  }
+  if (field || row.length) { row.push(field); rows.push(row); }
+  return rows;
 }
+
+function isOn(value) {
+  return ['true', 'wahr', 'ja', 'x', '1', 'an'].includes(String(value).trim().toLowerCase());
+}
+
+async function loadSheetSlides() {
+  const url = config.settings.sheetCsvUrl;
+  if (!url) return null;
+  try {
+    const res = await fetch(url + (url.includes('?') ? '&' : '?') + '_=' + Date.now(), { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const [header, ...rows] = parseCSV(await res.text());
+    const col = name => header.findIndex(h => h.trim().toLowerCase() === name);
+    const cOn = col('an'), cTitle = col('titel'), cLink = col('link'), cSec = col('sekunden');
+    if (cOn < 0 || cLink < 0) throw new Error('Spalten "an" / "Link" fehlen');
+
+    return rows
+      .filter(r => (r[cLink] || '').trim().startsWith('http'))
+      .map((r, i) => ({
+        id: 'sheet-' + i,
+        type: 'url',
+        url: r[cLink].trim(),
+        title: cTitle >= 0 ? r[cTitle].trim() : '',
+        duration: parseFloat(cSec >= 0 ? r[cSec] : '') || undefined,
+        enabled: isOn(r[cOn]),
+      }));
+  } catch (err) {
+    console.warn('Google-Tabelle nicht lesbar, nutze config.js:', err);
+    return null;
+  }
+}
+
+// Holt die aktuelle Seitenliste und startet die Rotation nur neu, wenn sich etwas geändert hat
+async function refreshSlides() {
+  const sheetSlides = await loadSheetSlides();
+  const all = sheetSlides ?? config.slides;
+  const active = all.filter(s => s.enabled !== false);
+  // Leere Tabelle (alle Häkchen weg) → lieber config.js zeigen als schwarzen Bildschirm
+  const next = active.length ? active : config.slides.filter(s => s.enabled !== false);
+  slideSource = (sheetSlides && active.length) ? 'Google-Tabelle' : 'config.js';
+  allSlides = all;
+
+  const key = s => [s.url, s.title, s.duration].join('|');
+  if (next.map(key).join('\n') === slides.map(key).join('\n')) return;
+
+  slides = next;
+  clearTimers();
+  currentIndex = 0;
+  renderDots();
+  showSlide(0);
+}
+
+// ─── Info-Panel (e m s) ──────────────────────────────────────────────────
+// Nur Anzeige: geschaltet wird in der Google-Tabelle, damit alle Bildschirme gleich laufen.
+let allSlides = [];
 
 function adminOpen() {
   const overlay = document.getElementById('admin-overlay');
   const list    = document.getElementById('admin-slide-list');
-  const overrides = adminGetOverrides();
+  document.getElementById('admin-source').textContent = 'Quelle: ' + slideSource;
   list.innerHTML = '';
 
-  window.SIGNAGE_CONFIG.slides.forEach(slide => {
-    const active = (slide.id in overrides) ? overrides[slide.id] : (slide.enabled !== false);
+  allSlides.forEach(slide => {
+    const active = slide.enabled !== false;
     const row = document.createElement('div');
     row.className = 'admin-row';
     row.innerHTML = `
       <div>
-        <div class="admin-row-title">${slide.title}</div>
-        <div class="admin-row-status ${active ? 'on' : 'off'}" id="as-${slide.id}">
+        <div class="admin-row-title"></div>
+        <div class="admin-row-status ${active ? 'on' : 'off'}">
           ${active ? '● Aktiv' : '● Ausgeblendet'}
         </div>
-      </div>
-      <label class="admin-toggle">
-        <input type="checkbox" id="at-${slide.id}" ${active ? 'checked' : ''}
-          onchange="adminUpdateRow('${slide.id}', this.checked)">
-        <span class="sl"></span>
-      </label>`;
+      </div>`;
+    row.querySelector('.admin-row-title').textContent = slide.title || slide.url;
     list.appendChild(row);
   });
 
   overlay.classList.add('open');
 }
 
-function adminUpdateRow(id, checked) {
-  const el = document.getElementById('as-' + id);
-  el.textContent = checked ? '● Aktiv' : '● Ausgeblendet';
-  el.className = 'admin-row-status ' + (checked ? 'on' : 'off');
-}
-
-function adminSave() {
-  const overrides = {};
-  window.SIGNAGE_CONFIG.slides.forEach(s => {
-    const cb = document.getElementById('at-' + s.id);
-    if (cb) overrides[s.id] = cb.checked;
-  });
-  localStorage.setItem(ADMIN_KEY, JSON.stringify(overrides));
+async function adminReload() {
   document.getElementById('admin-overlay').classList.remove('open');
-
-  // Rotation sofort neu starten mit neuen Einstellungen
-  clearTimers();
-  slides = window.SIGNAGE_CONFIG.slides.filter(s => {
-    if (s.id in overrides) return overrides[s.id] === true;
-    return s.enabled !== false;
-  });
-  currentIndex = 0;
-  renderDots();
-  showSlide(0);
+  await refreshSlides();
 }
 
 // ─── Konami-Code Schutz ──────────────────────────────────────────────────
@@ -251,38 +299,32 @@ document.addEventListener('keydown', (e) => {
 });
 
 // ─── Start ───────────────────────────────────────────────────────────────
-function init() {
+async function init() {
   if (!window.SIGNAGE_CONFIG) {
     document.body.innerHTML = '<div class="error-slide">config.js nicht geladen. Stelle sicher, dass config.js im gleichen Ordner liegt.</div>';
     return;
   }
   config = window.SIGNAGE_CONFIG;
 
-  // Gespeicherte Overrides laden (aus Admin-Panel)
-  const overrides = adminGetOverrides();
-
-  // Nur aktive Slides: Override hat Vorrang, sonst config.js-Wert
-  slides = config.slides.filter(s => {
-    if (s.id in overrides) return overrides[s.id] === true;
-    return s.enabled !== false;
-  });
-
-  if (slides.length === 0) {
-    document.body.innerHTML = '<div class="error-slide">Keine Slides in config.js konfiguriert.</div>';
-    return;
-  }
+  // Alte gerätelokale Schalter (früheres e-m-s-Panel) aufräumen
+  try { localStorage.removeItem('signage_enabled_overrides'); } catch {}
 
   // UI-Optionen
   if (!config.settings.showProgressBar) progressWrap.style.display = 'none';
   if (!config.settings.showClock) clockEl.style.display = 'none';
 
-  renderDots();
-  showSlide(0);
-
   // Uhr starten
   updateClock();
   setInterval(updateClock, 1000);
 
+  await refreshSlides();
+  if (slides.length === 0) {
+    document.body.innerHTML = '<div class="error-slide">Keine aktiven Seiten – weder in der Google-Tabelle noch in config.js.</div>';
+    return;
+  }
+
+  // Tabelle regelmäßig neu prüfen
+  setInterval(refreshSlides, (config.settings.refreshMinutes ?? 2) * 60 * 1000);
 }
 
 init();
