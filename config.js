@@ -20,7 +20,7 @@ window.SIGNAGE_CONFIG = {
     {
       id: "nachrichten",
       type: "url",
-      url: "https://www.canva.com/design/DAHD0_QcYJU/Bu7uqMes1_002VeZn7O3mQ/view?embed",
+      url: "https://www.canva.com/design/DAHWBrJVw2M/krN5lJ8RvcpChKgau3JIyA/view?embed",
       title: "Schulnachrichten",
       duration: 20,
       enabled: true   // ← false = Seite wird übersprungen
@@ -35,7 +35,7 @@ window.SIGNAGE_CONFIG = {
     {
       id: "sonderveranstaltungen",
       type: "url",
-      url: "https://www.canva.com/design/DAHD2JwSZZw/SzFrQegSVUushKBtt57D_g/view?embed",
+      url: "https://www.canva.com/design/DAHD0Yvn9a0/0Ry0YUl1dtIK2trdqtpYvQ/view?embed",
       title: "Sonderveranstaltungen",
       duration: 20,
       enabled: false   // ← Standardmäßig aus – nur bei Bedarf einschalten
