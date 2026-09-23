@@ -28,8 +28,8 @@ window.SIGNAGE_CONFIG = {
     {
       id: "ems-monitor",
       type: "url",
-      url: "https://www.canva.com/design/DAHD0Yvn9a0/0Ry0YUl1dtIK2trdqtpYvQ/view?embed",
-      title: "EMS Monitor",
+      url: "https://www.canva.com/design/DAHVKs9dIZ8/yA55jLvtnVfo03T9hWmleQ/view?embed",
+      title: "Mittagessen",
       duration: 25
     },
     {
