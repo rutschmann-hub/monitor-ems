@@ -4,7 +4,7 @@
 window.SIGNAGE_CONFIG = {
   settings: {
     defaultDuration: 20,
-    transitionDuration: 800,
+    transitionDuration: 1200,
     showProgressBar: true,
     showSlideTitle: true,
     showClock: true,

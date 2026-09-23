@@ -98,18 +98,55 @@ function startProgressBar(duration) {
 }
 
 // ─── Slide anzeigen ──────────────────────────────────────────────────────
-function showSlide(index) {
+// Die nächste Folie wird vorab unsichtbar in den freien Slot geladen und erst
+// eingeblendet, wenn sie fertig ist – so gibt es kein weißes Aufblitzen.
+const PRELOAD_MS  = 6000;  // so lange vor dem Wechsel wird die nächste Folie geladen
+const MAX_WAIT_MS = 5000;  // länger wird beim Wechsel nicht auf das Laden gewartet
+const SETTLE_MS   = 500;   // Canva & Co. brauchen nach "load" noch einen Moment
+
+let preloaded = null;      // { slide, slot, ready }
+let preloadTimer = null;
+let cleanupTimer = null;
+let showToken = 0;
+
+function loadInto(slot, slide) {
+  slot.innerHTML = '';
+  const el = buildSlideContent(slide);
+  const ready = new Promise(resolve => {
+    if (el.tagName === 'IFRAME' || el.tagName === 'IMG') {
+      el.addEventListener('load', () => setTimeout(resolve, SETTLE_MS), { once: true });
+      el.addEventListener('error', resolve, { once: true });
+    } else {
+      resolve();
+    }
+  });
+  slot.appendChild(el);
+  return ready;
+}
+
+function withTimeout(promise, ms) {
+  return Promise.race([promise, new Promise(r => setTimeout(r, ms))]);
+}
+
+async function showSlide(index) {
+  const token = ++showToken;
+  clearTimers();
+
   const slide = slides[index];
   const duration = (slide.duration ?? config.settings.defaultDuration) * 1000;
-  const transMs = config.settings.transitionDuration ?? 800;
+  const transMs = config.settings.transitionDuration ?? 1200;
 
   // Slots bestimmen
   const currentSlot = activeSlot === 'a' ? slotA : slotB;
   const nextSlot    = activeSlot === 'a' ? slotB : slotA;
 
-  // Nächsten Slide in inaktivem Slot aufbauen
-  nextSlot.innerHTML = '';
-  nextSlot.appendChild(buildSlideContent(slide));
+  // Vorgeladene Folie verwenden, sonst jetzt laden – und auf das Laden warten
+  const ready = (preloaded && preloaded.slide === slide && preloaded.slot === nextSlot)
+    ? preloaded.ready
+    : loadInto(nextSlot, slide);
+  preloaded = null;
+  await withTimeout(ready, MAX_WAIT_MS);
+  if (token !== showToken) return;   // inzwischen weitergeblättert
 
   // Titel aktualisieren
   if (config.settings.showSlideTitle && slide.title) {
@@ -119,9 +156,11 @@ function showSlide(index) {
     topBar.style.display = 'none';
   }
 
-  // Übergang: next einblenden, current ausblenden
-  nextSlot.classList.add('active');
+  // Übergang: neue Folie blendet über der alten ein (die alte bleibt stehen bis zum Schluss)
   currentSlot.classList.remove('active');
+  currentSlot.classList.add('leaving');
+  nextSlot.classList.remove('leaving');
+  nextSlot.classList.add('active');
 
   // Slots tauschen
   activeSlot = activeSlot === 'a' ? 'b' : 'a';
@@ -131,14 +170,21 @@ function showSlide(index) {
   if (config.settings.showProgressBar) startProgressBar(duration);
 
   // Alten Slot nach Transition leeren
-  setTimeout(() => {
+  cleanupTimer = setTimeout(() => {
+    currentSlot.classList.remove('leaving');
     currentSlot.innerHTML = '';
   }, transMs + 100);
 
-  // Nächsten Slide planen
-  clearTimers();
+  // Nächste Folie rechtzeitig vorladen …
+  const nextIndex = (index + 1) % slides.length;
+  const nextSlide = slides[nextIndex];
+  preloadTimer = setTimeout(() => {
+    preloaded = { slide: nextSlide, slot: currentSlot, ready: loadInto(currentSlot, nextSlide) };
+  }, Math.max(transMs + 200, duration - PRELOAD_MS));
+
+  // … und dann wechseln
   slideTimer = setTimeout(() => {
-    currentIndex = (currentIndex + 1) % slides.length;
+    currentIndex = nextIndex;
     showSlide(currentIndex);
   }, duration);
 }
@@ -146,6 +192,8 @@ function showSlide(index) {
 function clearTimers() {
   clearTimeout(slideTimer);
   clearTimeout(progressTimer);
+  clearTimeout(preloadTimer);
+  clearTimeout(cleanupTimer);
 }
 
 // ─── Google-Tabelle ──────────────────────────────────────────────────────
@@ -310,6 +358,7 @@ async function init() {
   try { localStorage.removeItem('signage_enabled_overrides'); } catch {}
 
   // UI-Optionen
+  document.documentElement.style.setProperty('--trans-ms', (config.settings.transitionDuration ?? 1200) + 'ms');
   if (!config.settings.showProgressBar) progressWrap.style.display = 'none';
   if (!config.settings.showClock) clockEl.style.display = 'none';
 
