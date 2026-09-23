@@ -35,7 +35,7 @@ window.SIGNAGE_CONFIG = {
     {
       id: "sonderveranstaltungen",
       type: "url",
-      url: "https://www.canva.com/design/DAHD0Yvn9a0/0Ry0YUl1dtIK2trdqtpYvQ/view?embed",
+      url: "https://www.canva.com/design/DAHWBlMJJ7M/fvq8VrbbUEP_VTLcYDan-g/view?embed",
       title: "Sonderveranstaltungen",
       duration: 20,
       enabled: false   // ← Standardmäßig aus – nur bei Bedarf einschalten
