@@ -1,160 +1,73 @@
-# Digital Signage
+# monitor-ems — Digital Signage
 
-🌐 **Live:** [https://rutschmann-hub.github.io/monitor-ems/](https://rutschmann-hub.github.io/monitor-ems/)
+🌐 **Live:** <https://rutschmann-hub.github.io/monitor-ems/>
 
-Eine einfache, selbst gehostete Digital-Signage-Lösung. HTML-Seiten, externe URLs (WebUntis, Canva), Bilder und PDFs rotieren automatisch auf dem Bildschirm.
+Selbstgehostete Digital-Signage-Seite für die Infobildschirme der Schule (Mini-PCs mit IServ-Modul „Infobildschirm"). Externe URLs (WebUntis, Canva) und eigene HTML-Seiten rotieren automatisch im Vollbild, mit weicher Überblendung.
 
-## Schnellstart
+## Seiten verwalten — der normale Weg
 
-1. Ordner herunterladen oder klonen
-2. `config.json` anpassen (Slides hinzufügen/entfernen)
-3. `index.html` in einem Browser öffnen – fertig!
+Die angezeigten Seiten stehen **zentral in einer Google-Tabelle**. Kein Code, kein Anfassen der Bildschirme nötig:
 
-> **Hinweis:** Wegen Browser-Sicherheitsregeln muss die Seite über einen lokalen Webserver laufen (nicht einfach per Doppelklick öffnen), damit externe URLs korrekt geladen werden.
-> Starte einen einfachen Server z.B. mit:
-> ```bash
-> npx serve .
-> # oder mit Python:
-> python3 -m http.server 8080
-> ```
+👉 **[Seiten-Tabelle bearbeiten](https://docs.google.com/spreadsheets/d/18vz3J_22zN62QApgEvwpHC7ApmGFECdyMeD27PRRtcc/edit)**
 
----
+| Spalte | Bedeutung |
+|--------|-----------|
+| `an` | `ja` / `x` / `1` / Häkchen = Seite wird gezeigt · leer = übersprungen |
+| `Titel` | interne Bezeichnung (wird nicht angezeigt) |
+| `Link` | URL der Seite (muss mit `http` beginnen) |
+| `Sekunden` | Anzeigedauer |
 
-## Ordnerstruktur
+Die Bildschirme lesen die Tabelle **alle 2 Minuten** neu — Änderungen erscheinen von allein.
+
+> **Canva-Links** immer als Einbettungslink: in Canva auf *Teilen → Einbetten → Link kopieren*; die URL endet auf `…/view?embed`.
+
+## Aufbau
 
 ```
-DigitalSignage/
-├── index.html          ← Hauptseite (öffnen im Browser)
-├── config.json         ← Alle Slides hier konfigurieren
-├── slides/             ← Eigene HTML-Slides ablegen
-│   ├── welcome.html    ← Willkommensseite (Beispiel)
-│   └── info.html       ← Info-Karten (Beispiel)
-├── assets/             ← PNG, JPG, PDF Dateien ablegen
-├── js/
-│   └── signage.js      ← Rotation-Engine
-└── css/
-    └── style.css       ← Styling
+monitor-ems/
+├── index.html      ← der Anzeige-Screen
+├── config.js       ← Einstellungen + Reserve-Seitenliste
+├── js/signage.js   ← Rotation, Tabelle laden, Überblendung
+├── css/style.css   ← Styling
+├── admin.html      ← leitet nur zur Google-Tabelle weiter
+├── slides/         ← optionale eigene HTML-Seiten (Typ „local")
+└── assets/         ← Bilder / PDFs
 ```
 
----
+## config.js
 
-## config.json – Slides konfigurieren
+Enthält die `settings` (Tabellen-Link, Aktualisierungs­intervall, Standard­dauer, Übergang, Uhr/Fortschritts­balken an/aus) und eine **Reserve-Seitenliste** `slides`. Die Reserve greift nur, wenn die Google-Tabelle nicht erreichbar oder leer ist — bei dauerhaften Link-Änderungen dort mitpflegen.
 
-```json
-{
-  "settings": {
-    "defaultDuration": 15,
-    "transitionDuration": 800,
-    "showProgressBar": true,
-    "showSlideTitle": true,
-    "showClock": true
-  },
-  "slides": [ ... ]
-}
-```
+Unterstützte Slide-Typen: `url`, `local` (Datei in `slides/`), `image`, `pdf` (Datei in `assets/`). Die Google-Tabelle liefert immer `url`.
 
-### Slide-Typen
+> Es gibt **kein `config.json`** mehr — die gesamte Konfiguration liegt in `config.js` (`window.SIGNAGE_CONFIG`).
 
-#### Externe URL (WebUntis, Canva, etc.)
-```json
-{
-  "id": "webuntis",
-  "type": "url",
-  "url": "https://meine-schule.webuntis.com/...",
-  "title": "Stundenplan",
-  "duration": 30
-}
-```
+## Bedienung am Bildschirm
 
-#### Canva Präsentation
-1. Canva öffnen → Teilen → Einbetten → Link kopieren
-2. Link als `url` eintragen:
-```json
-{
-  "id": "canva",
-  "type": "url",
-  "url": "https://www.canva.com/design/DESIGN-ID/view?embed",
-  "title": "Canva Präsentation",
-  "duration": 20
-}
-```
+| Eingabe | Aktion |
+|---------|--------|
+| `→` / Leertaste | nächste Seite |
+| `←` | vorige Seite |
+| Klick auf die **Punkte** unten | direkt zu einer Seite springen |
+| Tastenfolge `e` `m` `s` | Info-Panel (nur Anzeige — geschaltet wird in der Tabelle) |
 
-#### Eigene HTML-Seite
-```json
-{
-  "id": "meine-seite",
-  "type": "local",
-  "file": "slides/meine-seite.html",
-  "title": "Meine Seite",
-  "duration": 10
-}
-```
+## Lokal testen
 
-#### Bild (PNG, JPG)
-Datei in den `assets/`-Ordner legen:
-```json
-{
-  "id": "mein-bild",
-  "type": "image",
-  "file": "assets/mein-bild.png",
-  "title": "Info",
-  "duration": 12
-}
-```
-
-#### PDF
-Datei in den `assets/`-Ordner legen:
-```json
-{
-  "id": "mein-pdf",
-  "type": "pdf",
-  "file": "assets/mein-dokument.pdf",
-  "title": "Dokument",
-  "duration": 20
-}
-```
-
-#### Slide deaktivieren (ohne löschen)
-```json
-{
-  "id": "...",
-  "disabled": true,
-  ...
-}
-```
-
----
-
-## Tastatur-Steuerung
-
-| Taste | Aktion |
-|-------|--------|
-| `→` oder `Leertaste` | Nächster Slide |
-| `←` | Vorheriger Slide |
-
-Auf die **Punkte** (unten) klicken, um direkt zu einem Slide zu springen.
-
----
-
-## Hinweis zu iframes (WebUntis, Canva)
-
-Manche Webseiten erlauben keine Einbettung via iframe (`X-Frame-Options`). In diesem Fall:
-- WebUntis: Prüfe ob deine Schule die öffentliche Ansicht erlaubt
-- Canva: Den öffentlichen Einbettungslink verwenden (nicht den Bearbeitungslink)
-
----
-
-## Lokalen Server starten (empfohlen)
+Wegen Browser-Sicherheitsregeln über einen lokalen Server öffnen (nicht per Doppelklick):
 
 ```bash
-# Option 1 – Node.js (npx)
-npx serve .
-
-# Option 2 – Python
-python3 -m http.server 8080
-
-# Dann im Browser öffnen:
-# http://localhost:8080
+python3 -m http.server 8790
+# dann: http://localhost:8790
 ```
 
-Für einen dauerhaften Einsatz (z.B. Raspberry Pi oder Schulserver) empfiehlt sich nginx oder ein ähnlicher Webserver.
+In Claude Code: Vorschau-Konfiguration **„signage"** aus `.claude/launch.json`.
+
+## Deploy
+
+Push auf `main` → GitHub Pages aktualisiert die Live-Seite automatisch. Remote ist **SSH**:
+
+```bash
+git push   # git@github.com:rutschmann-hub/monitor-ems.git
+```
+
+> Nach Änderungen an `css/style.css` oder `js/signage.js` den Cache-Parameter `?v=N` in `index.html` hochzählen, damit die Bildschirme die neue Version laden.
