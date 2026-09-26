@@ -6,17 +6,14 @@
 let config = null;
 let slides = [];
 let currentIndex = 0;
-let progressTimer = null;
 let slideTimer = null;
 let activeSlot = 'a'; // alterniert zwischen 'a' und 'b' (sanfter Übergang)
 
 const slotA = document.getElementById('slide-a');
 const slotB = document.getElementById('slide-b');
-const titleEl = document.getElementById('slide-title');
 const clockEl = document.getElementById('clock');
 const progressBar = document.getElementById('progress-bar');
 const dotsEl = document.getElementById('dots');
-const topBar = document.getElementById('top-bar');
 const progressWrap = document.getElementById('progress-bar-wrap');
 
 // ─── Uhr ────────────────────────────────────────────────────────────────────
@@ -154,14 +151,6 @@ async function showSlide(index) {
   await withTimeout(ready, MAX_WAIT_MS);
   if (token !== showToken) return;   // inzwischen weitergeblättert
 
-  // Titel aktualisieren
-  if (config.settings.showSlideTitle && slide.title) {
-    titleEl.textContent = slide.title;
-    topBar.style.display = '';
-  } else if (!config.settings.showSlideTitle) {
-    topBar.style.display = 'none';
-  }
-
   // Übergang: neue Folie blendet über der alten ein (die alte bleibt stehen bis zum Schluss)
   currentSlot.classList.remove('active');
   currentSlot.classList.add('leaving');
@@ -197,7 +186,6 @@ async function showSlide(index) {
 
 function clearTimers() {
   clearTimeout(slideTimer);
-  clearTimeout(progressTimer);
   clearTimeout(preloadTimer);
   clearTimeout(cleanupTimer);
 }
@@ -340,6 +328,8 @@ document.addEventListener('keydown', (e) => {
   // Admin offen → keine Slide-Navigation
   if (document.getElementById('admin-overlay').classList.contains('open')) return;
 
+  // Ohne aktive Seiten keine Navigation (verhindert Division durch 0)
+  if (!slides.length) return;
 
   if (e.key === 'ArrowRight' || e.key === ' ') {
     clearTimers();

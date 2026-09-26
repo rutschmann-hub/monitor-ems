@@ -6,7 +6,6 @@ window.SIGNAGE_CONFIG = {
     defaultDuration: 20,
     transitionDuration: 1200,
     showProgressBar: true,
-    showSlideTitle: true,
     showClock: true,
 
     // Google-Tabelle mit der Seitenliste (Spalten: an, Titel, Link, Sekunden).
