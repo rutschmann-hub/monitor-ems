@@ -1,10 +1,9 @@
 # CLAUDE.md — monitor-ems (Digital Signage)
 
-## Arbeitsregeln (nach Karpathy)
-1. **Keine stillen Annahmen.** Verständnis der Aufgabe vor der Änderung bestätigen; bei Unklarheit nachfragen statt raten.
-2. **Kein Over-Engineering.** Die einfachste funktionierende Lösung ist die richtige. Dieses Projekt ist bewusst **abhängigkeitsfrei** (Vanilla JS, kein Build, kein Framework) — so halten.
-3. **Keine ungefragten Änderungen.** Nur anfassen, worum gebeten wurde; nicht nebenbei umbauen, umformatieren oder „aufräumen".
-4. **Erst Plan, dann Code.** Bei nicht-trivialen Aufgaben kurzer Plan + lokale Verifikation vor dem Commit.
+## Arbeitsweise (Karpathy-Guidelines)
+Verbindlich gilt die Skill **`andrej-karpathy-skills:karpathy-guidelines`** — dort steht der maßgebliche Wortlaut. Vier Regeln: **Think Before Coding · Simplicity First · Surgical Changes · Goal-Driven Execution.** Merksatz: keine stillen Annahmen, minimaler Code, nur das Angefragte anfassen (vorbestehenden toten Code **nennen, nicht ungefragt löschen**), Erfolg verifizieren.
+
+**Projektspezifisch dazu:** bewusst **abhängigkeitsfrei** halten (Vanilla JS, kein Build/Framework); Änderungen an der Live-Anzeige vorher lokal testen — die Screens laufen auf Schulbildschirmen.
 
 ## Was das ist
 Selbstgehostete Digital-Signage-Seite (statisch, Vanilla JS). Live über GitHub Pages: <https://rutschmann-hub.github.io/monitor-ems/>, eingebunden im IServ-Modul „Infobildschirm" auf mehreren Mini-PCs (Linux, `iserv-display`).
