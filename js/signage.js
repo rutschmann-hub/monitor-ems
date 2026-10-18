@@ -82,11 +82,12 @@ function updateDots() {
 }
 
 // ─── Fortschrittsbalken ──────────────────────────────────────────────────
-function startProgressBar(duration) {
+function startProgressBar(duration, startFraction = 0) {
   // Balken unten + Füllung im aktiven Punkt (bleibt sichtbar, falls der Bildschirm unten abschneidet)
   const fills = [progressBar, ...document.querySelectorAll('.dot-fill')];
   const activeFill = document.querySelector('.dot.active .dot-fill');
   fills.forEach(el => { el.style.transition = 'none'; el.style.width = '0%'; });
+  [progressBar, activeFill].forEach(el => { if (el) el.style.width = (startFraction * 100) + '%'; });
 
   // Mini-Verzögerung damit der Reset sichtbar ist
   requestAnimationFrame(() => {
@@ -131,12 +132,32 @@ function withTimeout(promise, ms) {
   return Promise.race([promise, new Promise(r => setTimeout(r, ms))]);
 }
 
-async function showSlide(index) {
+function slideMs(slide) {
+  return (slide.duration ?? config.settings.defaultDuration) * 1000;
+}
+
+// Welche Folie gerade dran ist, ergibt sich aus der Uhrzeit: der Umlauf startet
+// immer bei Vielfachen der Gesamtdauer. Neuladen (z. B. durch IServ) setzt die
+// Rotation so nicht auf Folie 1 zurück, und alle Bildschirme laufen gleich.
+function clockPosition(now = Date.now()) {
+  const total = slides.reduce((sum, s) => sum + slideMs(s), 0);
+  let t = now % total;
+  for (let i = 0; i < slides.length; i++) {
+    const ms = slideMs(slides[i]);
+    if (t < ms) return { index: i, endAt: now - t + ms };
+    t -= ms;
+  }
+  return { index: 0, endAt: now + slideMs(slides[0]) };
+}
+
+// endAt: Zeitpunkt, an dem gewechselt wird (Standard: volle Dauer ab jetzt)
+async function showSlide(index, endAt) {
   const token = ++showToken;
   clearTimers();
 
   const slide = slides[index];
-  const duration = (slide.duration ?? config.settings.defaultDuration) * 1000;
+  const duration = slideMs(slide);
+  endAt = endAt ?? Date.now() + duration;
   const transMs = config.settings.transitionDuration ?? 1200;
 
   // Slots bestimmen
@@ -150,6 +171,7 @@ async function showSlide(index) {
   preloaded = null;
   await withTimeout(ready, MAX_WAIT_MS);
   if (token !== showToken) return;   // inzwischen weitergeblättert
+  const remaining = Math.max(0, endAt - Date.now());
 
   // Übergang: neue Folie blendet über der alten ein (die alte bleibt stehen bis zum Schluss)
   currentSlot.classList.remove('active');
@@ -162,7 +184,7 @@ async function showSlide(index) {
 
   // Dots & Fortschritt
   updateDots();
-  if (config.settings.showProgressBar) startProgressBar(duration);
+  if (config.settings.showProgressBar) startProgressBar(remaining, 1 - remaining / duration);
 
   // Alten Slot nach Transition leeren
   cleanupTimer = setTimeout(() => {
@@ -175,13 +197,14 @@ async function showSlide(index) {
   const nextSlide = slides[nextIndex];
   preloadTimer = setTimeout(() => {
     preloaded = { slide: nextSlide, slot: currentSlot, ready: loadInto(currentSlot, nextSlide) };
-  }, Math.max(transMs + 200, duration - PRELOAD_MS));
+  }, Math.max(transMs + 200, remaining - PRELOAD_MS));
 
-  // … und dann wechseln
+  // … und dann wechseln – wieder im Takt der Uhr (auch nach manuellem Blättern)
   slideTimer = setTimeout(() => {
-    currentIndex = nextIndex;
-    showSlide(currentIndex);
-  }, duration);
+    const pos = clockPosition(Date.now() + 50);
+    currentIndex = pos.index;
+    showSlide(pos.index, pos.endAt);
+  }, remaining);
 }
 
 function clearTimers() {
@@ -249,6 +272,8 @@ async function loadSheetSlides() {
 // Holt die aktuelle Seitenliste und startet die Rotation nur neu, wenn sich etwas geändert hat
 async function refreshSlides() {
   const sheetSlides = await loadSheetSlides();
+  // Kurzer Aussetzer bei Google → letzte gute Tabelle behalten (config.js nur, wenn es noch keine gab)
+  if (!sheetSlides && slideSource === 'Google-Tabelle') return;
   const all = sheetSlides ?? config.slides;
   const active = all.filter(s => s.enabled !== false);
   // Leere Tabelle (alle Häkchen weg) → lieber config.js zeigen als schwarzen Bildschirm
@@ -261,9 +286,10 @@ async function refreshSlides() {
 
   slides = next;
   clearTimers();
-  currentIndex = 0;
+  const pos = clockPosition();
+  currentIndex = pos.index;
   renderDots();
-  showSlide(0);
+  showSlide(pos.index, pos.endAt);
 }
 
 // ─── Info-Panel (e m s) ──────────────────────────────────────────────────
@@ -370,6 +396,21 @@ async function init() {
 
   // Tabelle regelmäßig neu prüfen
   setInterval(refreshSlides, (config.settings.refreshMinutes ?? 2) * 60 * 1000);
+
+  // Seite regelmäßig komplett neu laden – gibt den Speicher frei, der sich im
+  // Dauerbetrieb auf schwachen Geräten ansammelt. Dank clockPosition geht es
+  // danach an der richtigen Stelle weiter.
+  const reloadMinutes = config.settings.reloadMinutes ?? 60;
+  if (reloadMinutes > 0) setInterval(reloadIfReachable, reloadMinutes * 60 * 1000);
+}
+
+// Nur neu laden, wenn die Seite gerade erreichbar ist – sonst bliebe eine
+// Fehlerseite stehen, bis jemand den Bildschirm neu startet.
+async function reloadIfReachable() {
+  try {
+    const res = await fetch(location.href, { cache: 'no-store' });
+    if (res.ok) location.reload();
+  } catch {}
 }
 
 init();

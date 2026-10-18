@@ -14,6 +14,7 @@ window.SIGNAGE_CONFIG = {
     sheetCsvUrl: "https://docs.google.com/spreadsheets/d/18vz3J_22zN62QApgEvwpHC7ApmGFECdyMeD27PRRtcc/gviz/tq?tqx=out:csv&headers=1",
     sheetEditUrl: "https://docs.google.com/spreadsheets/d/18vz3J_22zN62QApgEvwpHC7ApmGFECdyMeD27PRRtcc/edit",      // Link zum Bearbeiten – /admin.html leitet dorthin weiter
     refreshMinutes: 2,     // wie oft die Bildschirme die Tabelle neu prüfen
+    reloadMinutes: 60,     // wie oft die Seite komplett neu lädt (Speicher freigeben), 0 = nie
   },
   slides: [
     {
