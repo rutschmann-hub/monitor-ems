@@ -4,7 +4,7 @@
 window.SIGNAGE_CONFIG = {
   settings: {
     defaultDuration: 20,
-    transitionDuration: 1200,
+    transitionDuration: 0,       // ms Überblendung; 0 = harter Schnitt (Mini-PCs froren beim Überblenden ein)
     showProgressBar: true,
     showClock: true,
 
@@ -14,7 +14,7 @@ window.SIGNAGE_CONFIG = {
     sheetCsvUrl: "https://docs.google.com/spreadsheets/d/18vz3J_22zN62QApgEvwpHC7ApmGFECdyMeD27PRRtcc/gviz/tq?tqx=out:csv&headers=1",
     sheetEditUrl: "https://docs.google.com/spreadsheets/d/18vz3J_22zN62QApgEvwpHC7ApmGFECdyMeD27PRRtcc/edit",      // Link zum Bearbeiten – /admin.html leitet dorthin weiter
     refreshMinutes: 2,     // wie oft die Bildschirme die Tabelle neu prüfen
-    reloadMinutes: 60,     // wie oft die Seite komplett neu lädt (Speicher freigeben), 0 = nie
+    reloadMinutes: 20,     // wie oft die Seite komplett neu lädt (Speicher freigeben), 0 = nie
   },
   slides: [
     {
