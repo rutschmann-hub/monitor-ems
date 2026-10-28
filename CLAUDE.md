@@ -9,7 +9,7 @@ Verbindlich gilt die Skill **`andrej-karpathy-skills:karpathy-guidelines`** — 
 Selbstgehostete Digital-Signage-Seite (statisch, Vanilla JS). Live über GitHub Pages: <https://rutschmann-hub.github.io/monitor-ems/>, eingebunden im IServ-Modul „Infobildschirm" auf mehreren Mini-PCs (Linux, `iserv-display`).
 
 ## Wichtigstes Betriebsprinzip
-- Die **Seitenliste kommt live aus einer Google-Tabelle** (CSV via gviz), **nicht** aus dem Code. Spalten: `an`, `Titel`, `Link`, `Sekunden`. Die Bildschirme prüfen alle `refreshMinutes` (Standard 2) neu (`refreshSlides` in `js/signage.js`).
+- Die **Seitenliste kommt live aus einer Google-Tabelle** (CSV via gviz), **nicht** aus dem Code. Spalten: `an`, `Titel`, `Link`, `Sekunden`, optional `ab`/`bis` (Datum, Zeitfenster). Die Bildschirme prüfen alle `refreshMinutes` (Standard 2) neu (`refreshSlides` in `js/signage.js`).
 - Tabelle bearbeiten: <https://docs.google.com/spreadsheets/d/18vz3J_22zN62QApgEvwpHC7ApmGFECdyMeD27PRRtcc/edit>
 - **Seiten ein/aus, Titel, Links, Dauer ändert der Nutzer selbst in der Tabelle** — dafür keinen Code anfassen.
 - `config.js` → `slides` ist nur **Reserve** (greift, wenn die Tabelle nicht erreichbar oder ganz leer ist). Bei dauerhaften Link-Änderungen dort mitpflegen.
@@ -22,7 +22,7 @@ Selbstgehostete Digital-Signage-Seite (statisch, Vanilla JS). Live über GitHub 
 
 ## Dateien
 - `index.html` — der Screen; lädt `config.js` + `js/signage.js`.
-- `js/signage.js` — Engine: Tabelle laden (`loadSheetSlides`), Rotation, Vorladen/Überblendung, Fortschrittsbalken, Dots, `ems`-Panel.
+- `js/signage.js` — Engine: Tabelle laden (`loadSheetSlides`), Rotation, Vorladen/harter Wechsel, Fortschrittsbalken, Dots, `ems`-Panel.
 - `config.js` — `settings` (`sheetCsvUrl`, `sheetEditUrl`, `refreshMinutes`, Dauer/Übergang, Anzeige-Flags) + Reserve-`slides`.
 - `css/style.css` · `slides/*.html` (Reserve) · `assets/` (Bilder/PDF) · `admin.html` (leitet nur zur Tabelle weiter).
 

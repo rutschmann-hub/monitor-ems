@@ -14,7 +14,7 @@ html, body {
   color: #fff;
 }
 
-/* ─── Top-Bar (Titel + Uhr) ──────────────────────────────────────────────── */
+/* ─── Top-Bar (Uhr) ──────────────────────────────────────────────────────── */
 #top-bar {
   position: fixed;
   top: 0;
@@ -45,8 +45,8 @@ html, body {
   height: 100%;
 }
 
-/* Übergang: neue Folie blendet ein (ohne Zoom – schont die schwachen Mini-PCs).
-   Die alte Folie (.leaving) bleibt darunter stehen, bis die neue ganz sichtbar ist. */
+/* Folienwechsel: standardmäßig harter Schnitt (--trans-ms = 0, Mini-PCs froren beim
+   Überblenden ein). Die alte Folie (.leaving) bleibt darunter stehen, bis die neue sichtbar ist. */
 .slide {
   position: absolute;
   inset: 0;
@@ -93,9 +93,10 @@ html, body {
   bottom: 0;
   left: 0;
   right: 0;
-  height: 6px;
+  height: 4px;
   background: rgba(0,0,0,0.25);
   z-index: 100;
+  opacity: 0.6;   /* dezent, damit Inhalte am unteren Rand lesbar bleiben */
 }
 
 #progress-bar {
@@ -114,9 +115,10 @@ html, body {
   display: flex;
   gap: 8px;
   z-index: 100;
-  background: rgba(0,0,0,0.35);
+  background: rgba(0,0,0,0.25);
   padding: 5px 10px;
   border-radius: 20px;
+  opacity: 0.6;   /* dezent, damit Inhalte am unteren Rand lesbar bleiben */
 }
 
 .dot {
@@ -204,10 +206,10 @@ html, body {
 .admin-row-status.on  { color: #4CAF50; }
 .admin-row-status.off { color: #f44336; }
 
-#admin-save-btn {
+#admin-reload-btn {
   margin-top: 22px; width: 100%; padding: 13px;
   background: #1a1a2e; color: white; border: none;
   border-radius: 10px; font-size: 1rem; font-weight: 600;
   cursor: pointer; transition: background 0.2s;
 }
-#admin-save-btn:hover { background: #2d2d5a; }
+#admin-reload-btn:hover { background: #2d2d5a; }

@@ -7,7 +7,7 @@ let config = null;
 let slides = [];
 let currentIndex = 0;
 let slideTimer = null;
-let activeSlot = 'a'; // alterniert zwischen 'a' und 'b' (sanfter Übergang)
+let activeSlot = 'a'; // alterniert zwischen 'a' und 'b' (nächste Folie lädt im freien Slot vor)
 
 const slotA = document.getElementById('slide-a');
 const slotB = document.getElementById('slide-b');
@@ -173,7 +173,7 @@ async function showSlide(index, endAt) {
   if (token !== showToken) return;   // inzwischen weitergeblättert
   const remaining = Math.max(0, endAt - Date.now());
 
-  // Übergang: neue Folie blendet über der alten ein (die alte bleibt stehen bis zum Schluss)
+  // Wechsel: neue Folie nach vorn (bei transitionDuration > 0 blendet sie über der alten ein)
   currentSlot.classList.remove('active');
   currentSlot.classList.add('leaving');
   nextSlot.classList.remove('leaving');
@@ -214,8 +214,8 @@ function clearTimers() {
 }
 
 // ─── Google-Tabelle ──────────────────────────────────────────────────────
-// Die Seitenliste kommt aus einer Google-Tabelle (Spalten: an, Titel, Link, Sekunden).
-// Ist sie nicht erreichbar, gilt die Liste aus config.js.
+// Die Seitenliste kommt aus einer Google-Tabelle (Spalten: an, Titel, Link, Sekunden,
+// optional ab, bis). Ist sie nicht erreichbar, gilt die Liste aus config.js.
 let slideSource = 'config.js';
 
 function parseCSV(text) {
@@ -242,6 +242,26 @@ function isOn(value) {
   return ['true', 'wahr', 'ja', 'x', '1', 'an'].includes(String(value).trim().toLowerCase());
 }
 
+// Datum aus der Tabelle: 28.10.2026, 2026-10-28 oder 10/28/2026 (so liefert Google teils CSV)
+function parseDate(value) {
+  const s = String(value ?? '').trim();
+  let m, y, mo, d;
+  if ((m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/)))        [, y, mo, d] = m;
+  else if ((m = s.match(/^(\d{1,2})\.(\d{1,2})\.(\d{2,4})/))) [, d, mo, y] = m;
+  else if ((m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/)))   [, mo, d, y] = m;
+  else return null;
+  y = +y < 100 ? +y + 2000 : +y;
+  return new Date(y, mo - 1, +d);
+}
+
+// Leeres "ab"/"bis" = keine Grenze; "bis" gilt einschließlich des ganzen Tages
+function inDateRange(from, to, now = new Date()) {
+  const a = parseDate(from), b = parseDate(to);
+  if (a && now < a) return false;
+  if (b && now >= new Date(b.getFullYear(), b.getMonth(), b.getDate() + 1)) return false;
+  return true;
+}
+
 async function loadSheetSlides() {
   const url = config.settings.sheetCsvUrl;
   if (!url) return null;
@@ -251,18 +271,22 @@ async function loadSheetSlides() {
     const [header, ...rows] = parseCSV(await res.text());
     const col = name => header.findIndex(h => h.trim().toLowerCase() === name);
     const cOn = col('an'), cTitle = col('titel'), cLink = col('link'), cSec = col('sekunden');
+    const cFrom = col('ab'), cTo = col('bis');
     if (cOn < 0 || cLink < 0) throw new Error('Spalten "an" / "Link" fehlen');
 
     return rows
       .filter(r => (r[cLink] || '').trim().startsWith('http'))
-      .map((r, i) => ({
-        id: 'sheet-' + i,
-        type: 'url',
-        url: r[cLink].trim(),
-        title: cTitle >= 0 ? r[cTitle].trim() : '',
-        duration: parseFloat(cSec >= 0 ? r[cSec] : '') || undefined,
-        enabled: isOn(r[cOn]),
-      }));
+      .map((r, i) => {
+        const sec = parseFloat(cSec >= 0 ? r[cSec] : '');
+        return {
+          id: 'sheet-' + i,
+          type: 'url',
+          url: r[cLink].trim(),
+          title: cTitle >= 0 ? (r[cTitle] || '').trim() : '',
+          duration: sec > 0 ? sec : undefined,   // leer, 0 oder negativ → Standarddauer
+          enabled: isOn(r[cOn]) && inDateRange(r[cFrom], r[cTo]),
+        };
+      });
   } catch (err) {
     console.warn('Google-Tabelle nicht lesbar, nutze config.js:', err);
     return null;
@@ -325,30 +349,30 @@ async function adminReload() {
   await refreshSlides();
 }
 
-// ─── Konami-Code Schutz ──────────────────────────────────────────────────
-const KONAMI = ['e','m','s'];
-let konamiPos = 0;
+// ─── Tastenfolge e m s (öffnet das Info-Panel) ───────────────────────────
+const EMS_KEYS = ['e','m','s'];
+let emsPos = 0;
 
 // ─── Tastatur-Steuerung ──────────────────────────────────────────────────
 document.addEventListener('keydown', (e) => {
   // Admin-Panel: Esc schließt
   if (e.key === 'Escape') {
     document.getElementById('admin-overlay').classList.remove('open');
-    konamiPos = 0;
+    emsPos = 0;
     return;
   }
 
-  // Konami-Code prüfen
-  if (e.key === KONAMI[konamiPos]) {
-    konamiPos++;
-    if (konamiPos === KONAMI.length) {
-      konamiPos = 0;
+  // Tastenfolge prüfen
+  if (e.key === EMS_KEYS[emsPos]) {
+    emsPos++;
+    if (emsPos === EMS_KEYS.length) {
+      emsPos = 0;
       const overlay = document.getElementById('admin-overlay');
       overlay.classList.contains('open') ? overlay.classList.remove('open') : adminOpen();
     }
     return;
   } else {
-    konamiPos = (e.key === KONAMI[0]) ? 1 : 0;
+    emsPos = (e.key === EMS_KEYS[0]) ? 1 : 0;
   }
 
   // Admin offen → keine Slide-Navigation
@@ -375,9 +399,6 @@ async function init() {
     return;
   }
   config = window.SIGNAGE_CONFIG;
-
-  // Alte gerätelokale Schalter (früheres e-m-s-Panel) aufräumen
-  try { localStorage.removeItem('signage_enabled_overrides'); } catch {}
 
   // UI-Optionen
   document.documentElement.style.setProperty('--trans-ms', (config.settings.transitionDuration ?? 1200) + 'ms');

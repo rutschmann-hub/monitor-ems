@@ -2,7 +2,7 @@
 
 🌐 **Live:** <https://rutschmann-hub.github.io/monitor-ems/>
 
-Selbstgehostete Digital-Signage-Seite für die Infobildschirme der Schule (Mini-PCs mit IServ-Modul „Infobildschirm"). Externe URLs (WebUntis, Canva) und eigene HTML-Seiten rotieren automatisch im Vollbild, mit weicher Überblendung.
+Selbstgehostete Digital-Signage-Seite für die Infobildschirme der Schule (Mini-PCs mit IServ-Modul „Infobildschirm"). Externe URLs (WebUntis, Canva) und eigene HTML-Seiten rotieren automatisch im Vollbild (harter Folienwechsel, die nächste Seite lädt unsichtbar vor).
 
 ## Seiten verwalten — der normale Weg
 
@@ -16,6 +16,8 @@ Die angezeigten Seiten stehen **zentral in einer Google-Tabelle**. Kein Code, ke
 | `Titel` | interne Bezeichnung (wird nicht angezeigt) |
 | `Link` | URL der Seite (muss mit `http` beginnen) |
 | `Sekunden` | Anzeigedauer |
+| `ab` *(optional)* | Datum, ab dem die Seite gezeigt wird (z. B. `28.10.2026`) · leer = sofort |
+| `bis` *(optional)* | Datum, bis einschließlich dem die Seite gezeigt wird · leer = unbegrenzt |
 
 Die Bildschirme lesen die Tabelle **alle 2 Minuten** neu — Änderungen erscheinen von allein.
 
@@ -27,7 +29,7 @@ Die Bildschirme lesen die Tabelle **alle 2 Minuten** neu — Änderungen erschei
 monitor-ems/
 ├── index.html      ← der Anzeige-Screen
 ├── config.js       ← Einstellungen + Reserve-Seitenliste
-├── js/signage.js   ← Rotation, Tabelle laden, Überblendung
+├── js/signage.js   ← Rotation, Tabelle laden, Vorladen
 ├── css/style.css   ← Styling
 ├── admin.html      ← leitet nur zur Google-Tabelle weiter
 ├── slides/         ← optionale eigene HTML-Seiten (Typ „local")
@@ -70,4 +72,4 @@ Push auf `main` → GitHub Pages aktualisiert die Live-Seite automatisch. Remote
 git push   # git@github.com:rutschmann-hub/monitor-ems.git
 ```
 
-> Nach Änderungen an `css/style.css` oder `js/signage.js` den Cache-Parameter `?v=N` in `index.html` hochzählen, damit die Bildschirme die neue Version laden.
+> Nach Änderungen an `css/style.css`, `js/signage.js` oder `config.js` den Cache-Parameter `?v=N` in `index.html` hochzählen, damit die Bildschirme die neue Version laden.
