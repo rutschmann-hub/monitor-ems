@@ -22,7 +22,7 @@ Selbstgehostete Digital-Signage-Seite (statisch, Vanilla JS). Live über GitHub 
 
 ## Dateien
 - `index.html` — der Screen; lädt `config.js` + `js/signage.js`.
-- `js/signage.js` — Engine: Tabelle laden (`loadSheetSlides`), Rotation, Vorladen/harter Wechsel, Fortschrittsbalken, Dots, `ems`-Panel.
+- `js/signage.js` — Engine: Tabelle laden (`loadSheetSlides`), Rotation, Folien bleiben geladen (Wechsel = nur umschalten, harter Schnitt), Fortschrittsbalken, Dots, `ems`-Panel.
 - `config.js` — `settings` (`sheetCsvUrl`, `sheetEditUrl`, `refreshMinutes`, Dauer/Übergang, Anzeige-Flags) + Reserve-`slides`.
 - `css/style.css` · `slides/*.html` (Reserve) · `assets/` (Bilder/PDF) · `admin.html` (leitet nur zur Tabelle weiter).
 

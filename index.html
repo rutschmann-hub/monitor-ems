@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Digital Signage</title>
-  <link rel="stylesheet" href="css/style.css?v=5">
+  <link rel="stylesheet" href="css/style.css?v=6">
 </head>
 <body>
 
@@ -13,11 +13,8 @@
     <span id="clock"></span>
   </div>
 
-  <!-- Slide-Container: hier werden iframes / img / pdf eingeblendet -->
-  <div id="slide-container">
-    <div id="slide-a" class="slide active"></div>
-    <div id="slide-b" class="slide"></div>
-  </div>
+  <!-- Slide-Container: je Folie ein .slide (legt js/signage.js an, bleibt geladen) -->
+  <div id="slide-container"></div>
 
   <!-- Fortschrittsbalken -->
   <div id="progress-bar-wrap">
@@ -38,7 +35,7 @@
     </div>
   </div>
 
-  <script src="config.js?v=5"></script>
-  <script src="js/signage.js?v=5"></script>
+  <script src="config.js?v=6"></script>
+  <script src="js/signage.js?v=6"></script>
 </body>
 </html>

@@ -46,13 +46,16 @@ html, body {
 }
 
 /* Folienwechsel: standardmäßig harter Schnitt (--trans-ms = 0, Mini-PCs froren beim
-   Überblenden ein). Die alte Folie (.leaving) bleibt darunter stehen, bis die neue sichtbar ist. */
+   Überblenden ein). Die alte Folie (.leaving) bleibt darunter stehen, bis die neue sichtbar ist.
+   Nicht gezeigte Folien bleiben geladen, sind aber unsichtbar (visibility: hidden) –
+   dann muss der Browser sie nicht zeichnen. */
 .slide {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   opacity: 0;
+  visibility: hidden;
   transition: opacity var(--trans-ms, 1200ms) ease-in-out;
   pointer-events: none;
   z-index: 0;
@@ -60,12 +63,14 @@ html, body {
 
 .slide.active {
   opacity: 1;
+  visibility: visible;
   pointer-events: auto;
   z-index: 2;
 }
 
 .slide.leaving {
   opacity: 1;
+  visibility: visible;
   transition: none;
   z-index: 1;
 }

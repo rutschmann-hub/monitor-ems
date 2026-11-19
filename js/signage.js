@@ -7,10 +7,8 @@ let config = null;
 let slides = [];
 let currentIndex = 0;
 let slideTimer = null;
-let activeSlot = 'a'; // alterniert zwischen 'a' und 'b' (nächste Folie lädt im freien Slot vor)
 
-const slotA = document.getElementById('slide-a');
-const slotB = document.getElementById('slide-b');
+const slideContainer = document.getElementById('slide-container');
 const clockEl = document.getElementById('clock');
 const progressBar = document.getElementById('progress-bar');
 const dotsEl = document.getElementById('dots');
@@ -102,30 +100,54 @@ function startProgressBar(duration, startFraction = 0) {
 }
 
 // ─── Slide anzeigen ──────────────────────────────────────────────────────
-// Die nächste Folie wird vorab unsichtbar in den freien Slot geladen und erst
-// eingeblendet, wenn sie fertig ist – so gibt es kein weißes Aufblitzen.
-const PRELOAD_MS  = 6000;  // so lange vor dem Wechsel wird die nächste Folie geladen
+// Jede Folie wird nur einmal geladen und bleibt dann unsichtbar im Hintergrund
+// liegen; beim Wechsel wird nur umgeschaltet. Früher wurde Canva & Co. bei jedem
+// Wechsel neu geladen – daran froren die schwachen Mini-PCs irgendwann ein.
+// Frisch geladen wird alles beim regelmäßigen Neuladen der Seite (reloadMinutes).
+const PRELOAD_MS  = 6000;  // so lange vor dem Wechsel wird eine noch nie geladene Folie geladen
 const MAX_WAIT_MS = 5000;  // länger wird beim Wechsel nicht auf das Laden gewartet
 const SETTLE_MS   = 500;   // Canva & Co. brauchen nach "load" noch einen Moment
 
-let preloaded = null;      // { slide, slot, ready }
+const frames = new Map();  // url/Datei → { el, ready }
+let activeFrame = null;
 let preloadTimer = null;
 let cleanupTimer = null;
 let showToken = 0;
 
-function loadInto(slot, slide) {
-  slot.innerHTML = '';
-  const el = buildSlideContent(slide);
+const frameKey = slide => slide.url ?? slide.file;
+
+// Folie holen – beim ersten Mal unsichtbar anlegen und laden
+function getFrame(slide) {
+  let frame = frames.get(frameKey(slide));
+  if (frame) return frame;
+
+  const el = document.createElement('div');
+  el.className = 'slide';
+  const content = buildSlideContent(slide);
   const ready = new Promise(resolve => {
-    if (el.tagName === 'IFRAME' || el.tagName === 'IMG') {
-      el.addEventListener('load', () => setTimeout(resolve, SETTLE_MS), { once: true });
-      el.addEventListener('error', resolve, { once: true });
+    if (content.tagName === 'IFRAME' || content.tagName === 'IMG') {
+      content.addEventListener('load', () => setTimeout(resolve, SETTLE_MS), { once: true });
+      content.addEventListener('error', resolve, { once: true });
     } else {
       resolve();
     }
   });
-  slot.appendChild(el);
-  return ready;
+  el.appendChild(content);
+  slideContainer.appendChild(el);
+  frame = { el, ready };
+  frames.set(frameKey(slide), frame);
+  return frame;
+}
+
+// Folien, die nicht mehr in der Liste stehen, wieder entfernen
+function pruneFrames() {
+  const keep = new Set(slides.map(frameKey));
+  for (const [key, frame] of frames) {
+    if (keep.has(key)) continue;
+    frame.el.remove();
+    frames.delete(key);
+    if (frame === activeFrame) activeFrame = null;
+  }
 }
 
 function withTimeout(promise, ms) {
@@ -160,44 +182,33 @@ async function showSlide(index, endAt) {
   endAt = endAt ?? Date.now() + duration;
   const transMs = config.settings.transitionDuration ?? 1200;
 
-  // Slots bestimmen
-  const currentSlot = activeSlot === 'a' ? slotA : slotB;
-  const nextSlot    = activeSlot === 'a' ? slotB : slotA;
-
-  // Vorgeladene Folie verwenden, sonst jetzt laden – und auf das Laden warten
-  const ready = (preloaded && preloaded.slide === slide && preloaded.slot === nextSlot)
-    ? preloaded.ready
-    : loadInto(nextSlot, slide);
-  preloaded = null;
-  await withTimeout(ready, MAX_WAIT_MS);
+  // Folie holen (ist sie schon geladen, geht das sofort) – sonst kurz auf das Laden warten
+  const frame = getFrame(slide);
+  await withTimeout(frame.ready, MAX_WAIT_MS);
   if (token !== showToken) return;   // inzwischen weitergeblättert
   const remaining = Math.max(0, endAt - Date.now());
 
   // Wechsel: neue Folie nach vorn (bei transitionDuration > 0 blendet sie über der alten ein)
-  currentSlot.classList.remove('active');
-  currentSlot.classList.add('leaving');
-  nextSlot.classList.remove('leaving');
-  nextSlot.classList.add('active');
-
-  // Slots tauschen
-  activeSlot = activeSlot === 'a' ? 'b' : 'a';
+  const prev = activeFrame;
+  frames.forEach(f => f.el.classList.remove('leaving'));   // Reste eines abgebrochenen Wechsels
+  if (prev !== frame) {
+    if (prev) {
+      prev.el.classList.remove('active');
+      prev.el.classList.add('leaving');
+      cleanupTimer = setTimeout(() => prev.el.classList.remove('leaving'), transMs + 100);
+    }
+    frame.el.classList.add('active');
+    activeFrame = frame;
+  }
 
   // Dots & Fortschritt
   updateDots();
   if (config.settings.showProgressBar) startProgressBar(remaining, 1 - remaining / duration);
 
-  // Alten Slot nach Transition leeren
-  cleanupTimer = setTimeout(() => {
-    currentSlot.classList.remove('leaving');
-    currentSlot.innerHTML = '';
-  }, transMs + 100);
-
-  // Nächste Folie rechtzeitig vorladen …
+  // Nächste Folie rechtzeitig vorladen (nur beim ersten Mal nötig) …
   const nextIndex = (index + 1) % slides.length;
   const nextSlide = slides[nextIndex];
-  preloadTimer = setTimeout(() => {
-    preloaded = { slide: nextSlide, slot: currentSlot, ready: loadInto(currentSlot, nextSlide) };
-  }, Math.max(transMs + 200, remaining - PRELOAD_MS));
+  preloadTimer = setTimeout(() => getFrame(nextSlide), Math.max(transMs + 200, remaining - PRELOAD_MS));
 
   // … und dann wechseln – wieder im Takt der Uhr (auch nach manuellem Blättern)
   slideTimer = setTimeout(() => {
@@ -310,6 +321,7 @@ async function refreshSlides() {
 
   slides = next;
   clearTimers();
+  pruneFrames();
   const pos = clockPosition();
   currentIndex = pos.index;
   renderDots();
